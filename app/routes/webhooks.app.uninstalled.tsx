@@ -7,6 +7,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   console.log(`Received ${topic} webhook for ${shop}`);
 
+  await db.shop.updateMany({
+    where: { shopDomain: shop },
+    data: {
+      planActive: false,
+      uninstalledAt: new Date(),
+    },
+  });
+
   // Webhook requests can trigger multiple times and after an app has already been uninstalled.
   // If this webhook already ran, the session may have been deleted previously.
   if (session) {

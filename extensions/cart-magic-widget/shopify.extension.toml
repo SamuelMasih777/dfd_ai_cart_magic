@@ -1,0 +1,9 @@
+# Learn more: https://shopify.dev/docs/apps/build/online-store/theme-app-extensions/configuration
+
+api_version = "2025-01"
+
+[[extensions]]
+uid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+type = "theme"
+name = "Cart Magic"
+handle = "cart-magic-widget"

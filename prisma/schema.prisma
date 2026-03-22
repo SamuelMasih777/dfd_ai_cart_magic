@@ -1,18 +1,17 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Cart Magic — PRD schema (Supabase PostgreSQL)
+// https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
 }
 
-// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
-// enough when changing adapters.
-// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
 datasource db {
-  provider = "sqlite"
-  url      = "file:dev.sqlite"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
+// --- Shopify OAuth session storage (@shopify/shopify-app-session-storage-prisma) ---
 model Session {
   id                  String    @id
   shop                String
@@ -31,4 +30,171 @@ model Session {
   emailVerified       Boolean?  @default(false)
   refreshToken        String?
   refreshTokenExpires DateTime?
+}
+
+// --- App domain (PRD §4) ---
+
+model Shop {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Shopify shop domain, e.g. my-store.myshopify.com
+  shopDomain String @unique @map("shop_domain")
+
+  /// Offline access token (duplicate of Session for app-level queries; keep in sync on install)
+  accessToken String @map("access_token")
+
+  /// free | pro | scale
+  plan       String  @default("free")
+  planActive Boolean @default(true) @map("plan_active")
+
+  installedAt   DateTime  @default(now()) @map("installed_at") @db.Timestamptz(6)
+  uninstalledAt DateTime? @map("uninstalled_at") @db.Timestamptz(6)
+
+  cartSettings    CartSettings?
+  rewardTiers     RewardTier[]
+  upsellRule      UpsellRule?
+  giftRules       GiftRule[]
+  cartRules       CartRule[]
+  analyticsEvents AnalyticsEvent[]
+
+  @@map("shops")
+}
+
+model CartSettings {
+  id String @id @default(uuid()) @db.Uuid
+
+  shopId String @unique @map("shop_id") @db.Uuid
+  shop   Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  drawerEnabled          Boolean @default(true) @map("drawer_enabled")
+  stickyAtcEnabled       Boolean @default(false) @map("sticky_atc_enabled")
+  expressCheckoutEnabled Boolean @default(false) @map("express_checkout_enabled")
+  discountBoxEnabled     Boolean @default(false) @map("discount_box_enabled")
+  orderNoteEnabled       Boolean @default(false) @map("order_note_enabled")
+  termsCheckboxEnabled   Boolean @default(false) @map("terms_checkbox_enabled")
+  timerEnabled           Boolean @default(false) @map("timer_enabled")
+  timerMinutes           Int?    @map("timer_minutes")
+  trustBadgesEnabled     Boolean @default(false) @map("trust_badges_enabled")
+  aiUpsellEnabled        Boolean @default(false) @map("ai_upsell_enabled")
+  rulesEngineEnabled     Boolean @default(false) @map("rules_engine_enabled")
+
+  // design_config JSON — colors, drawer width, fonts, checkout CTA text, etc.
+  designConfig Json? @map("design_config") @db.JsonB
+
+  /// Optional denormalized snapshot; structured rules live in `cart_rules`
+  rulesJson Json? @map("rules_json") @db.JsonB
+
+  announcementText String? @map("announcement_text")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("cart_settings")
+}
+
+model RewardTier {
+  id String @id @default(uuid()) @db.Uuid
+
+  shopId String @map("shop_id") @db.Uuid
+  shop   Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  /// 1–3
+  position Int
+
+  thresholdAmount Decimal @map("threshold_amount") @db.Decimal(12, 2)
+  rewardType      String  @map("reward_type")
+  rewardLabel     String? @map("reward_label")
+  enabled         Boolean @default(true)
+
+  @@unique([shopId, position])
+  @@index([shopId])
+  @@map("reward_tiers")
+}
+
+/// One upsell configuration per shop (PRD: single AI/manual definition)
+model UpsellRule {
+  id String @id @default(uuid()) @db.Uuid
+
+  shopId String @unique @map("shop_id") @db.Uuid
+  shop   Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  /// ai | manual
+  ruleType String @map("rule_type")
+
+  productIds    String[] @default([]) @map("product_ids")
+  collectionIds String[] @default([]) @map("collection_ids")
+
+  maxProducts  Int     @default(3) @map("max_products")
+  displayStyle String  @default("carousel") @map("display_style")
+  showIfInCart Boolean @default(false) @map("show_if_in_cart")
+  enabled      Boolean @default(true)
+
+  /// Resolved manual picks: [{ id: GID, handle, numericId }] for storefront /products/{handle}.js
+  manualProductsMeta Json? @map("manual_products_meta") @db.JsonB
+
+  @@map("upsell_rules")
+}
+
+model GiftRule {
+  id String @id @default(uuid()) @db.Uuid
+
+  shopId String @map("shop_id") @db.Uuid
+  shop   Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  giftProductId String  @map("gift_product_id")
+  giftVariantId String? @map("gift_variant_id")
+  minCartValue  Decimal @map("min_cart_value") @db.Decimal(12, 2)
+  autoAdd       Boolean @default(true) @map("auto_add")
+  enabled       Boolean @default(true)
+
+  /// Storefront JSON: { handle, variantNumericId, title } after admin save
+  giftProductMeta Json? @map("gift_product_meta") @db.JsonB
+
+  @@index([shopId])
+  @@map("gift_rules")
+}
+
+model CartRule {
+  id String @id @default(uuid()) @db.Uuid
+
+  shopId String @map("shop_id") @db.Uuid
+  shop   Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  /// 1–10 (order in UI)
+  position Int
+
+  /// cart_value_gt | product_in_cart | returning_customer
+  conditionType  String  @map("condition_type")
+  conditionValue String? @map("condition_value")
+
+  /// show_upsell_product | show_offer | apply_discount
+  actionType  String  @map("action_type")
+  actionValue String? @map("action_value")
+
+  enabled Boolean @default(true)
+
+  @@unique([shopId, position])
+  @@index([shopId])
+  @@map("cart_rules")
+}
+
+model AnalyticsEvent {
+  id BigInt @id @default(autoincrement())
+
+  shopId String @map("shop_id") @db.Uuid
+  shop   Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  /// drawer_open | upsell_added | gift_redeemed | progress_influenced | checkout_click | order_completed
+  eventType String @map("event_type")
+
+  cartToken     String?  @map("cart_token")
+  cartTotal     Decimal? @map("cart_total") @db.Decimal(12, 2)
+  upsellRevenue Decimal? @map("upsell_revenue") @db.Decimal(12, 2)
+  metadata      Json?    @map("metadata") @db.JsonB
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([shopId, createdAt])
+  @@index([shopId, eventType])
+  @@map("analytics_events")
 }

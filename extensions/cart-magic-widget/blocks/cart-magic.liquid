@@ -1,0 +1,29 @@
+<div
+  id="sc-cart-magic-root"
+  data-shop="{{ shop.permanent_domain }}"
+  data-app-url="{{ block.settings.app_url }}"
+  style="display:none"
+  aria-hidden="true"
+></div>
+
+{% schema %}
+{
+  "name": "Cart Magic",
+  "target": "body",
+  "javascript": "cart-magic.js",
+  "stylesheet": "cart-magic.css",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Set your app public URL (HTTPS) from Shopify Partners or your dev tunnel. Configure drawer, upsell, and rewards in the Cart Magic admin."
+    },
+    {
+      "type": "text",
+      "id": "app_url",
+      "label": "App URL",
+      "default": "https://",
+      "placeholder": "https://xxxx.ngrok.io"
+    }
+  ]
+}
+{% endschema %}
