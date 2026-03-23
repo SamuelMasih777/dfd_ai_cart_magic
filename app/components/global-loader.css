@@ -1,0 +1,67 @@
+/* Global navigation loader — gold gradient matches Cart Magic logo */
+
+.gloader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+.gloader-overlay--blocking {
+  pointer-events: auto;
+}
+
+.gloader-inner {
+  position: relative;
+  width: var(--gloader-size, 104px);
+  height: var(--gloader-size, 104px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Revolving ring around logo — gradient stroke */
+.gloader-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid rgba(161, 98, 7, 0.2);
+  border-top-color: var(--gloader-from, #facc15);
+  border-right-color: var(--gloader-mid, #ca8a04);
+  border-bottom-color: var(--gloader-to, #854d0e);
+  animation: gloader-orbit 0.95s linear infinite;
+  box-sizing: border-box;
+}
+
+.gloader-logo {
+  position: relative;
+  z-index: 1;
+  width: 58%;
+  height: 58%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 12px rgba(133, 77, 14, 0.35));
+}
+
+.gloader-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes gloader-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}

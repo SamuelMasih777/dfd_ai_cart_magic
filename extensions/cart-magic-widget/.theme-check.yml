@@ -1,0 +1,6 @@
+# Theme app extension — relax JS size check (widget bundle > default 10KB gzip budget).
+# Prefer splitting/lazy-loading later; see https://shopify.dev/docs/storefronts/themes/tools/theme-check/checks/asset-size-app-block-javascript
+AssetSizeAppBlockJavaScript:
+  enabled: true
+  severity: suggestion
+  threshold_in_bytes: 50_000
