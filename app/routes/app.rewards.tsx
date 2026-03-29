@@ -110,6 +110,13 @@ export default function RewardsPage() {
   const [suggested, setSuggested] = useState<[string, string, string] | null>(
     null,
   );
+  const [tiers, setTiers] = useState(data.tiers);
+
+  const updateTier = (pos: number, field: string, value: any) => {
+    setTiers((prev) =>
+      prev.map((t) => (t.position === pos ? { ...t, [field]: value } : t)),
+    );
+  };
 
   useEffect(() => {
     if (
@@ -119,7 +126,15 @@ export default function RewardsPage() {
       fetcher.data.suggestions
     ) {
       const [a, b, c] = fetcher.data.suggestions;
-      setSuggested([a.toFixed(2), b.toFixed(2), c.toFixed(2)]);
+      const sugg: [string, string, string] = [
+        a.toFixed(2),
+        b.toFixed(2),
+        c.toFixed(2),
+      ];
+      setSuggested(sugg);
+      setTiers((prev) =>
+        prev.map((t, i) => ({ ...t, threshold: sugg[i] ?? t.threshold })),
+      );
     }
   }, [fetcher.data]);
 
@@ -160,41 +175,42 @@ export default function RewardsPage() {
                   </fetcher.Form>
                 </BlockStack>
               </Card>
-              {data.tiers.map((tier) => (
-                <Card key={tier.position}>
-                  <BlockStack gap="300">
-                    <Text as="h3" variant="headingMd">
-                      Tier {tier.position}
-                    </Text>
-                    <Checkbox
-                      label="Enabled"
-                      name={`tier_${tier.position}_enabled`}
-                      defaultChecked={tier.enabled}
-                    />
-                    <TextField
-                      key={`th-${tier.position}-${suggested?.join("-") ?? tier.threshold}`}
-                      label="Threshold (store currency)"
-                      name={`tier_${tier.position}_threshold`}
-                      autoComplete="off"
-                      defaultValue={
-                        suggested?.[tier.position - 1] ?? tier.threshold
-                      }
-                    />
-                    <Select
-                      label="Reward type"
-                      name={`tier_${tier.position}_rewardType`}
-                      options={REWARD_TYPES}
-                      defaultValue={tier.rewardType}
-                    />
-                    <TextField
-                      label="Label (shown in progress bar)"
-                      name={`tier_${tier.position}_rewardLabel`}
-                      autoComplete="off"
-                      defaultValue={tier.rewardLabel}
-                    />
-                  </BlockStack>
-                </Card>
-              ))}
+                {tiers.map((tier) => (
+                  <Card key={tier.position}>
+                    <BlockStack gap="300">
+                      <Text as="h3" variant="headingMd">
+                        Tier {tier.position}
+                      </Text>
+                      <Checkbox
+                        label="Enabled"
+                        name={`tier_${tier.position}_enabled`}
+                        checked={tier.enabled}
+                        onChange={(val) => updateTier(tier.position, "enabled", val)}
+                      />
+                      <TextField
+                        label="Threshold (store currency)"
+                        name={`tier_${tier.position}_threshold`}
+                        autoComplete="off"
+                        value={tier.threshold}
+                        onChange={(val) => updateTier(tier.position, "threshold", val)}
+                      />
+                      <Select
+                        label="Reward type"
+                        name={`tier_${tier.position}_rewardType`}
+                        options={REWARD_TYPES}
+                        value={tier.rewardType}
+                        onChange={(val) => updateTier(tier.position, "rewardType", val)}
+                      />
+                      <TextField
+                        label="Label (shown in progress bar)"
+                        name={`tier_${tier.position}_rewardLabel`}
+                        autoComplete="off"
+                        value={tier.rewardLabel}
+                        onChange={(val) => updateTier(tier.position, "rewardLabel", val)}
+                      />
+                    </BlockStack>
+                  </Card>
+                ))}
               <Box paddingBlockEnd="400">
                 <button
                   type="submit"

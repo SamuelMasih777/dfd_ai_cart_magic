@@ -59,7 +59,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     .map((s) => s.trim())
     .filter(Boolean);
 
-  let manualProductsMeta: { products: unknown[] } | null = null;
+  let manualProductsMeta: any = null;
 
   if (ruleType === "manual" && productIds.length > 0) {
     const products = await resolveManualProducts(
@@ -67,8 +67,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       productIds,
     );
     manualProductsMeta = { products };
-  } else {
-    manualProductsMeta = null;
   }
 
   await prisma.upsellRule.upsert({
@@ -110,6 +108,11 @@ export default function UpsellPage() {
 
   const [productIds, setProductIds] = useState<string[]>(data.productIds);
   const [manualProducts, setManualProducts] = useState(data.manualProducts);
+  const [enabled, setEnabled] = useState(data.enabled);
+  const [ruleType, setRuleType] = useState(data.ruleType);
+  const [maxProducts, setMaxProducts] = useState(String(data.maxProducts));
+  const [displayStyle, setDisplayStyle] = useState(data.displayStyle);
+  const [showIfInCart, setShowIfInCart] = useState(data.showIfInCart);
 
   const pickProducts = useCallback(async () => {
     const raw = await shopify.resourcePicker({
@@ -151,7 +154,8 @@ export default function UpsellPage() {
                   <Checkbox
                     label="Enable upsell in cart drawer"
                     name="enabled"
-                    defaultChecked={data.enabled}
+                    checked={enabled}
+                    onChange={(checked) => setEnabled(checked)}
                   />
                   <Select
                     label="Mode"
@@ -160,7 +164,8 @@ export default function UpsellPage() {
                       { label: "AI (Shopify recommendations)", value: "ai" },
                       { label: "Manual (pick products)", value: "manual" },
                     ]}
-                    defaultValue={data.ruleType}
+                    value={ruleType}
+                    onChange={(value) => setRuleType(value as "ai" | "manual")}
                   />
                   <Select
                     label="Max products"
@@ -170,7 +175,8 @@ export default function UpsellPage() {
                       { label: "2", value: "2" },
                       { label: "3", value: "3" },
                     ]}
-                    defaultValue={String(data.maxProducts)}
+                    value={maxProducts}
+                    onChange={(value) => setMaxProducts(value)}
                   />
                   <Select
                     label="Layout"
@@ -179,17 +185,18 @@ export default function UpsellPage() {
                       { label: "Carousel", value: "carousel" },
                       { label: "Block", value: "block" },
                     ]}
-                    defaultValue={data.displayStyle}
+                    value={displayStyle}
+                    onChange={(value) => setDisplayStyle(value)}
                   />
                   <Checkbox
                     label="Show upsell even if product is already in cart"
                     name="showIfInCart"
-                    defaultChecked={data.showIfInCart}
+                    checked={showIfInCart}
+                    onChange={(checked) => setShowIfInCart(checked)}
                   />
                   <input type="hidden" name="productIds" value={productIdsStr} />
                   <InlineStack gap="200" blockAlign="center">
                     <Button
-                      type="button"
                       onClick={pickProducts}
                       disabled={busy}
                     >

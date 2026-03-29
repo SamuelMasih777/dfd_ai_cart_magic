@@ -101,6 +101,7 @@ export default function RulesPage() {
   const busy = navigation.state !== "idle";
 
   const [rules, setRules] = useState<RuleRow[]>(data.rules as RuleRow[]);
+  const [rulesEngineEnabled, setRulesEngineEnabled] = useState(data.rulesEngineEnabled);
 
   const rulesSignature = useMemo(
     () => JSON.stringify(data.rules),
@@ -155,7 +156,8 @@ export default function RulesPage() {
                   <Checkbox
                     label="Enable rules engine on storefront"
                     name="rulesEngineEnabled"
-                    defaultChecked={data.rulesEngineEnabled}
+                    checked={rulesEngineEnabled}
+                    onChange={(val) => setRulesEngineEnabled(val)}
                   />
                   {rules.map((row, index) => (
                     <Box
@@ -229,7 +231,6 @@ export default function RulesPage() {
                           }
                         />
                         <Button
-                          type="button"
                           tone="critical"
                           onClick={() => removeRow(index)}
                           disabled={busy}
@@ -241,7 +242,6 @@ export default function RulesPage() {
                   ))}
                   <InlineStack gap="200">
                     <Button
-                      type="button"
                       onClick={addRow}
                       disabled={busy || rules.length >= MAX_RULES}
                     >

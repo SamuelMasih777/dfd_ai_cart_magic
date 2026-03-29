@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import { Form, useLoaderData, useNavigation } from "@remix-run/react";
@@ -60,6 +61,13 @@ export default function DiscountTrustPage() {
   const navigation = useNavigation();
   const busy = navigation.state !== "idle";
 
+  const [discountBoxEnabled, setDiscountBoxEnabled] = useState(data.discountBoxEnabled);
+  const [trustBadgesEnabled, setTrustBadgesEnabled] = useState(data.trustBadgesEnabled);
+  const [timerEnabled, setTimerEnabled] = useState(data.timerEnabled);
+  const [timerMinutes, setTimerMinutes] = useState(String(data.timerMinutes));
+  const [orderNoteEnabled, setOrderNoteEnabled] = useState(data.orderNoteEnabled);
+  const [termsCheckboxEnabled, setTermsCheckboxEnabled] = useState(data.termsCheckboxEnabled);
+
   return (
     <Page>
       <TitleBar title="Discount + trust & urgency" />
@@ -74,17 +82,20 @@ export default function DiscountTrustPage() {
                 <Checkbox
                   label="Discount code box (Ajax cart)"
                   name="discountBoxEnabled"
-                  defaultChecked={data.discountBoxEnabled}
+                  checked={discountBoxEnabled}
+                  onChange={(val) => setDiscountBoxEnabled(val)}
                 />
                 <Checkbox
                   label="Trust badges row"
                   name="trustBadgesEnabled"
-                  defaultChecked={data.trustBadgesEnabled}
+                  checked={trustBadgesEnabled}
+                  onChange={(val) => setTrustBadgesEnabled(val)}
                 />
                 <Checkbox
                   label="Countdown timer"
                   name="timerEnabled"
-                  defaultChecked={data.timerEnabled}
+                  checked={timerEnabled}
+                  onChange={(val) => setTimerEnabled(val)}
                 />
                 <TextField
                   label="Timer duration (minutes)"
@@ -93,17 +104,20 @@ export default function DiscountTrustPage() {
                   min={1}
                   max={240}
                   autoComplete="off"
-                  defaultValue={String(data.timerMinutes)}
+                  value={timerMinutes}
+                  onChange={(val) => setTimerMinutes(val)}
                 />
                 <Checkbox
                   label="Order note"
                   name="orderNoteEnabled"
-                  defaultChecked={data.orderNoteEnabled}
+                  checked={orderNoteEnabled}
+                  onChange={(val) => setOrderNoteEnabled(val)}
                 />
                 <Checkbox
                   label="Require terms checkbox before checkout"
                   name="termsCheckboxEnabled"
-                  defaultChecked={data.termsCheckboxEnabled}
+                  checked={termsCheckboxEnabled}
+                  onChange={(val) => setTermsCheckboxEnabled(val)}
                 />
                 <Box paddingBlockStart="200">
                   <button

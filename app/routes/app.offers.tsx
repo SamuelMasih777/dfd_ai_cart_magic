@@ -114,6 +114,9 @@ export default function OffersPage() {
 
   const [productGid, setProductGid] = useState("");
   const [productLabel, setProductLabel] = useState("");
+  const [minCartValue, setMinCartValue] = useState("50");
+  const [autoAdd, setAutoAdd] = useState(true);
+  const [enabled, setEnabled] = useState(true);
 
   const pickProduct = useCallback(async () => {
     const raw = await shopify.resourcePicker({
@@ -163,7 +166,6 @@ export default function OffersPage() {
                   <input type="hidden" name="productGid" value={productGid} />
                   <InlineStack gap="200" blockAlign="center">
                     <Button
-                      type="button"
                       onClick={pickProduct}
                       disabled={busy || data.giftRules.length >= MAX_GIFTS}
                     >
@@ -179,7 +181,8 @@ export default function OffersPage() {
                       name="minCartValue"
                       type="number"
                       autoComplete="off"
-                      defaultValue="50"
+                      value={minCartValue}
+                      onChange={(val) => setMinCartValue(val)}
                       min={0}
                       step={0.01}
                     />
@@ -188,14 +191,16 @@ export default function OffersPage() {
                     <Checkbox
                       label="Auto-add gift when threshold is met"
                       name="autoAdd"
-                      defaultChecked
+                      checked={autoAdd}
+                      onChange={(val) => setAutoAdd(val)}
                     />
                   </Box>
                   <Box paddingBlockStart="300">
                     <Checkbox
                       label="Enabled"
                       name="enabled"
-                      defaultChecked
+                      checked={enabled}
+                      onChange={(val) => setEnabled(val)}
                     />
                   </Box>
                   <Box paddingBlockStart="400">

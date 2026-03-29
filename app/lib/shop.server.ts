@@ -15,6 +15,59 @@ export const DEFAULT_DESIGN_CONFIG = {
   checkoutButtonText: "Checkout",
 } as const;
 
+export const PLAN_LIMITS = {
+  free: {
+    maxRewardTiers: 1,
+    maxUpsellProducts: 2,
+    manualUpsell: false,
+    giftRules: false,
+    discountBox: false,
+    trustBadges: false,
+    timer: false,
+    rulesEngine: false,
+    analytics: false,
+    expressCheckout: false,
+    customCss: false,
+    multiLang: false,
+    branding: true,
+  },
+  pro: {
+    maxRewardTiers: 3,
+    maxUpsellProducts: 3,
+    manualUpsell: true,
+    giftRules: true,
+    discountBox: true,
+    trustBadges: true,
+    timer: true,
+    rulesEngine: true,
+    analytics: true,
+    expressCheckout: false,
+    customCss: false,
+    multiLang: false,
+    branding: false,
+  },
+  scale: {
+    maxRewardTiers: 3,
+    maxUpsellProducts: 3,
+    manualUpsell: true,
+    giftRules: true,
+    discountBox: true,
+    trustBadges: true,
+    timer: true,
+    rulesEngine: true,
+    analytics: true,
+    expressCheckout: true,
+    customCss: true,
+    multiLang: true,
+    branding: false,
+  },
+} as const;
+
+export function getPlanLimits(plan: string) {
+  return PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] ?? PLAN_LIMITS.free;
+}
+
+
 export function isValidShopDomain(shop: string | null | undefined): boolean {
   if (!shop || typeof shop !== "string") return false;
   return /^[a-z0-9][a-z0-9-]*\.myshopify\.com$/i.test(shop.trim());
@@ -247,17 +300,19 @@ export function buildWidgetConfig(shop: {
     features: {
       drawer: shop.cartSettings?.drawerEnabled ?? true,
       rewardsBar: true,
-      upsell: upsell?.enabled ?? false,
-      giftRule: giftRulesOut.length > 0,
-      discountBox: cs?.discountBoxEnabled ?? false,
-      timer: cs?.timerEnabled ?? false,
-      trustBadges: cs?.trustBadgesEnabled ?? false,
+      upsell: (upsell?.enabled ?? false) && (getPlanLimits(shop.plan).maxUpsellProducts > 0),
+      giftRule: giftRulesOut.length > 0 && getPlanLimits(shop.plan).giftRules,
+      discountBox: (cs?.discountBoxEnabled ?? false) && getPlanLimits(shop.plan).discountBox,
+      timer: (cs?.timerEnabled ?? false) && getPlanLimits(shop.plan).timer,
+      trustBadges: (cs?.trustBadgesEnabled ?? false) && getPlanLimits(shop.plan).trustBadges,
       orderNote: cs?.orderNoteEnabled ?? false,
       termsCheckbox: cs?.termsCheckboxEnabled ?? false,
       stickyAtc: cs?.stickyAtcEnabled ?? false,
-      expressCheckout: cs?.expressCheckoutEnabled ?? false,
-      rulesEngine: cs?.rulesEngineEnabled ?? false,
+      expressCheckout: (cs?.expressCheckoutEnabled ?? false) && getPlanLimits(shop.plan).expressCheckout,
+      rulesEngine: (cs?.rulesEngineEnabled ?? false) && getPlanLimits(shop.plan).rulesEngine,
+      branding: getPlanLimits(shop.plan).branding,
     },
+
     announcement: shop.cartSettings?.announcementText ?? "",
     rewardTiers: shop.rewardTiers
       .filter((t) => t.enabled)

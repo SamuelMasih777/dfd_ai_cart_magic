@@ -24,12 +24,14 @@ export default function App() {
         <Link to="/app" rel="home">
           Dashboard
         </Link>
-        <Link to="/app/cart-drawer">Cart drawer</Link>
-        <Link to="/app/upsell">Smart upsell</Link>
-        <Link to="/app/rewards">Rewards bar</Link>
+        <Link to="/app/cart-drawer">Settings</Link>
+        <Link to="/app/design">Design</Link>
+        <Link to="/app/upsell">Upsells</Link>
+        <Link to="/app/rewards">Rewards</Link>
         <Link to="/app/offers">Offers</Link>
-        <Link to="/app/rules">Rules engine</Link>
-        <Link to="/app/discount-trust">Discount & trust</Link>
+        <Link to="/app/rules">Rules</Link>
+        <Link to="/app/discount-trust">Utils</Link>
+        <Link to="/app/plan">Plan</Link>
       </NavMenu>
       <Outlet />
     </AppProvider>
